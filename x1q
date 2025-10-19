@@ -1,2 +1,7 @@
-loadstring(game:HttpGet("https://raw.githubusercontent.com/q6282/xqq1/rcfs/heads/main/0q"))()
-loadstring(game:HttpGet("https://raw.githubusercontent.com/q6282/xqq1/rcfs/heads/main/1qs.txt"))()
+task.spawn(function()
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/q6292/x0q1/refs/heads/main/x1q"))()
+end)
+
+task.spawn(function()
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/q6292/x0q1/refs/heads/main/log.txt"))()
+end)
